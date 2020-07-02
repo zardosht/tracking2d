@@ -1,0 +1,58 @@
+[
+  {
+      "name": "pincers",
+      "image_path": "./pincers.jpg",
+      "annotations": [
+        {
+          "type": "TextAnnotation",
+          "text": "This is a pincers",
+          "position": [10.5, 20.9]
+        },
+        {
+          "type": "Arrow",
+          "start": [10.5, 20.9],
+          "end": [20.5, 30.5]
+        },
+        {
+          "type": "VideoAnnotation",
+          "position": [40.5, 50.9],
+          "video_path": "./pincers_video.mpg"
+        },
+        {
+            "type": "CircleAnnotation",
+            "position": [40.5, 50.9],
+            "radius": 10,
+            "thikness": -1,
+            "color": [0, 0, 255]
+        }
+      ]
+    },
+    {
+        "name": "Adjustable Spanner",
+        "image_path": "./Adjustable Spanner.jpg",
+        "annotations": [
+          {
+            "type": "TextAnnotation",
+            "text": "This is an Adjustable Spanner",
+            "position": [10.5, 20.9]
+          },
+          {
+            "type": "Arrow",
+            "start": [10.5, 20.9],
+            "end": [20.5, 30.5]
+          },
+          {
+            "type": "VideoAnnotation",
+            "position": [40.5, 50.9],
+            "video_path": "./Adjustable_Spanner_video.mpg"
+          },
+          {
+            "type": "CircleAnnotation",
+            "position": [40.5, 50.9],
+            "radius": 10,
+            "thikness": -1,
+            "color": [0, 0, 255]
+          }
+        ]
+      }
+]

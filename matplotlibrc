@@ -1,0 +1,4 @@
+backend: agg
+
+# It sounds absurd :D
+# see https://stackoverflow.com/questions/15817554/obscure-repeatable-crashes-in-multi-threaded-python-console-application-using-t
