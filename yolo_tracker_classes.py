@@ -1,6 +1,9 @@
 
 
 class PhysicalObject:
+    """
+    PhysicalObject
+    """
     def __init__(self):
         self.name = ""
         self.image_path = ""
@@ -9,6 +12,9 @@ class PhysicalObject:
 
 
 class Annotation:
+    """
+    Annotation
+    """
     def __init__(self):
         self.type = ""
         self.position = [0.0, 0.0]
@@ -20,13 +26,16 @@ class Annotation:
         self.image_path = ""
         self.color = ""
         self.radius = 0
-        self.thikness = 0
+        self.thickness = 0
         self.width = 0
         self.height = 0
-        self.updateOrientation = False
+        self.update_orientation = False
 
 
 class PoseEstimationOutput:
+    """
+    PoseEstimationOutput
+    """
     def __init__(self, name, homography, error):
         self.object_name = name
         self.homography = homography
@@ -34,6 +43,9 @@ class PoseEstimationOutput:
 
 
 class PoseEstimationInput:
+    """
+    PoseEstimationInput
+    """
     def __init__(self, object_name, template_image, target_image, best_homography):
         self.object_name = object_name
         self.template_image = template_image
@@ -42,6 +54,9 @@ class PoseEstimationInput:
 
 
 class ObjectDetectionResult:
+    """
+    ObjectDetectionResult
+    """
     def __init__(self, lable, confidence, top_left, bottom_right):
         self.lable = lable
         self.confidnece = confidence

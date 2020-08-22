@@ -89,19 +89,19 @@ def compute_new_position(position, homography):
         return position
 
 
-def draw_annotations(frame, presentPhysicalObjects, homographies):
-    for physicalObject, objectDetectionResult in presentPhysicalObjects:
-        if not physicalObject.name in homographies.keys() or homographies[physicalObject.name] is None:
-            logger.warning("physicalObject.name is not in homographies.keys() or homographies[physicalObject.name] is None: %s", physicalObject.name)
+def draw_annotations(frame, present_phys_objs, homographies):
+    for physical_object, object_detection_result in present_phys_objs:
+        if not physical_object.name in homographies.keys() or homographies[physical_object.name] is None:
+            logger.warning("physicalObject.name is not in homographies.keys() or homographies[physicalObject.name] is None: %s", physical_object.name)
             continue
-        if homographies[physicalObject.name].error > homography_error_drawing_threshold:
-            logger.warning("Homography has a very large error: %s", physicalObject.name)
+        if homographies[physical_object.name].error > homography_error_drawing_threshold:
+            logger.warning("Homography has a very large error: %s", physical_object.name)
             continue
-        for annotation in physicalObject.annotations:
+        for annotation in physical_object.annotations:
             if annotation.type == "CircleAnnotation":
-                new_position = compute_new_position(annotation.position, homographies[physicalObject.name].homography)
+                new_position = compute_new_position(annotation.position, homographies[physical_object.name].homography)
                 # new_position = annotation.position
-                newAbsolutePosition = (objectDetectionResult.top_left[0] + new_position[0], objectDetectionResult.top_left[1] + new_position[1])
+                newAbsolutePosition = (object_detection_result.top_left[0] + new_position[0], object_detection_result.top_left[1] + new_position[1])
 
                 logger.debug("new_position: %s", newAbsolutePosition)
                 frame = cv2.circle(frame, newAbsolutePosition, annotation.radius, annotation.color, annotation.thikness)
@@ -128,20 +128,20 @@ def create_dummy_physical_objects():
     videoAnnotation.position = [40.5, 50.9]
     videoAnnotation.video_path = "pincers_video.mpg"
     pincers.annotations.append(videoAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [72, 70]
-    circleAnnotation.color = [0, 0, 255]
-    circleAnnotation.thikness = 3
-    pincers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [122, 330]
-    circleAnnotation.color = [0, 255, 123]
-    circleAnnotation.thikness = 3
-    pincers.annotations.append(circleAnnotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [72, 70]
+    circle_annotation.color = [0, 0, 255]
+    circle_annotation.thickness = 3
+    pincers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [122, 330]
+    circle_annotation.color = [0, 255, 123]
+    circle_annotation.thickness = 3
+    pincers.annotations.append(circle_annotation)
     phs.append(pincers)
 
     adjSpanner = PhysicalObject()
@@ -163,13 +163,13 @@ def create_dummy_physical_objects():
     videoAnnotation.position = [40.5, 50.9]
     videoAnnotation.video_path = "Adjustable_Spanner_video.mpg"
     adjSpanner.annotations.append(videoAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [74, 380]
-    circleAnnotation.color = [0, 0, 255]
-    circleAnnotation.thikness = 3
-    adjSpanner.annotations.append(circleAnnotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [74, 380]
+    circle_annotation.color = [0, 0, 255]
+    circle_annotation.thickness = 3
+    adjSpanner.annotations.append(circle_annotation)
     phs.append(adjSpanner)
 
     pump_pliers = PhysicalObject()
@@ -191,27 +191,27 @@ def create_dummy_physical_objects():
     videoAnnotation.position = [40.5, 50.9]
     videoAnnotation.video_path = "Pump_Pliers_video.mpg"
     pump_pliers.annotations.append(videoAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [112, 78]
-    circleAnnotation.color = [0, 0, 255]
-    circleAnnotation.thikness = 3
-    pump_pliers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [48, 464]
-    circleAnnotation.color = [123, 255, 0]
-    circleAnnotation.thikness = 3
-    pump_pliers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [136, 474]
-    circleAnnotation.color = [255, 123, 0]
-    circleAnnotation.thikness = 3
-    pump_pliers.annotations.append(circleAnnotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [112, 78]
+    circle_annotation.color = [0, 0, 255]
+    circle_annotation.thickness = 3
+    pump_pliers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [48, 464]
+    circle_annotation.color = [123, 255, 0]
+    circle_annotation.thickness = 3
+    pump_pliers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [136, 474]
+    circle_annotation.color = [255, 123, 0]
+    circle_annotation.thickness = 3
+    pump_pliers.annotations.append(circle_annotation)
     phs.append(pump_pliers)
 
     linemans_pliers = PhysicalObject()
@@ -233,27 +233,27 @@ def create_dummy_physical_objects():
     videoAnnotation.position = [40.5, 50.9]
     videoAnnotation.video_path = "linemans_pliers_video.mpg"
     linemans_pliers.annotations.append(videoAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [84, 65]
-    circleAnnotation.color = [0, 255, 255]
-    circleAnnotation.thikness = 3
-    linemans_pliers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [47, 353]
-    circleAnnotation.color = [255, 255, 0]
-    circleAnnotation.thikness = 3
-    linemans_pliers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [125, 353]
-    circleAnnotation.color = [255, 0, 255]
-    circleAnnotation.thikness = 3
-    linemans_pliers.annotations.append(circleAnnotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [84, 65]
+    circle_annotation.color = [0, 255, 255]
+    circle_annotation.thickness = 3
+    linemans_pliers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [47, 353]
+    circle_annotation.color = [255, 255, 0]
+    circle_annotation.thickness = 3
+    linemans_pliers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [125, 353]
+    circle_annotation.color = [255, 0, 255]
+    circle_annotation.thickness = 3
+    linemans_pliers.annotations.append(circle_annotation)
     phs.append(linemans_pliers)
 
     needle_nose_pliers = PhysicalObject()
@@ -275,20 +275,20 @@ def create_dummy_physical_objects():
     videoAnnotation.position = [40.5, 50.9]
     videoAnnotation.video_path = "needle_nose_pliers_video.mpg"
     needle_nose_pliers.annotations.append(videoAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [81, 95]
-    circleAnnotation.color = [255, 123, 123]
-    circleAnnotation.thikness = 3
-    needle_nose_pliers.annotations.append(circleAnnotation)
-    circleAnnotation = Annotation()
-    circleAnnotation.type = "CircleAnnotation"
-    circleAnnotation.radius = 20
-    circleAnnotation.position = [82, 16]
-    circleAnnotation.color = [123, 123, 123]
-    circleAnnotation.thikness = 3
-    needle_nose_pliers.annotations.append(circleAnnotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [81, 95]
+    circle_annotation.color = [255, 123, 123]
+    circle_annotation.thickness = 3
+    needle_nose_pliers.annotations.append(circle_annotation)
+    circle_annotation = Annotation()
+    circle_annotation.type = "CircleAnnotation"
+    circle_annotation.radius = 20
+    circle_annotation.position = [82, 16]
+    circle_annotation.color = [123, 123, 123]
+    circle_annotation.thickness = 3
+    needle_nose_pliers.annotations.append(circle_annotation)
     phs.append(needle_nose_pliers)
 
     # frozen = jsonpickle.encode(phs)
