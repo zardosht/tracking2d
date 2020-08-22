@@ -9,28 +9,32 @@ from yolo_pose_estimator import PoseEstimator
 import multiprocessing as mp
 
 
-options = {
-    'model': 'cfg/miras_v2.cfg',
-    'load': 'bin/miras_v2_12600.weights',
-    'labels': 'cfg/labels.txt',
-    'threshold': 0.5,
-    'gpu': 1.0
-}
-
-model_loaded = False
-tfnet = None
-
-croppedImagesPath = "./Test/croppedImages/"
-cropped_image_extension = ".jpg"
-physical_objects_data_path = "./domains/tools/"
-
-logger = logging.getLogger('mirdl.yolo_tracker')
-debug = False
 
 
-homography_error_drawing_threshold = 200
+class PhysicalObject:
+    def __init__(self):
+        self.name = ""
+        self.image_path = ""
+        self.image = None
+        self.annotations = []
 
 
+class Annotation:
+    def __init__(self):
+        self.type = ""
+        self.position = [0.0, 0.0]
+        self.text = ""
+        self.start = [0.0, 0.0]
+        self.end = [0.0, 0.0]
+        self.video_path = ""
+        self.audio_path = ""
+        self.image_path = ""
+        self.color = ""
+        self.radius = 0
+        self.thikness = 0
+        self.width = 0
+        self.height = 0
+        self.updateOrientation = False
 
 
 class PoseEstimationOutput:
@@ -48,6 +52,36 @@ class PoseEstimationInput:
         self.best_homography = best_homography
 
 
+class ObjectDetectionResult:
+    def __init__(self, lable, confidence, top_left, bottom_right):
+        self.lable = lable
+        self.confidnece = confidence
+        self.top_left = top_left
+        self.bottom_right = bottom_right
+        self.image = None
+
+
+options = {
+    'model': 'model/tools/tools_v2.cfg',
+    'load': 'model/tools/tools_v2_12600.weights',
+    'labels': 'model/labels.txt',
+    'threshold': 0.5,
+    'gpu': 1.0
+}
+
+
+model_loaded = False
+tfnet = None
+
+croppedImagesPath = "./tmp/croppedImages/"
+cropped_image_extension = ".jpg"
+physical_objects_data_path = "./physical_objects/tools/"
+
+logger = logging.getLogger('tracking2d.yolo_tracker')
+debug = False
+
+
+homography_error_drawing_threshold = 200
 
 
 def load_yolo_model():
@@ -77,6 +111,12 @@ def draw_results_on_frame(frame, colors, objectDetectionResults):
         frame = cv2.putText(frame, text, result.top_left, cv2.FONT_HERSHEY_COMPLEX, .5, (0, 0, 0), 1)
 
 
+def cropPredictedObjects(frame, results):
+    for result in results:
+        # if result.confidnece * 100 > 60:
+        result.image = frame[result.top_left[1]:result.bottom_right[1], result.top_left[0]:result.bottom_right[0]]
+        if debug: cv2.imwrite(croppedImagesPath + result.lable + cropped_image_extension, result.image)
+
 def compute_new_position(position, homography):
     try:
         # homogenous_position = np.array((position[0], position[1], 1)).reshape((3, 1))
@@ -92,10 +132,11 @@ def compute_new_position(position, homography):
 
         return new_x, new_y
 
-    except Exception as err :
+    except Exception:
         logger.error("Exception in transforming new annotation position. Homography: %s", homography)
         traceback.print_exc()
         return position
+
 
 def draw_annotations(frame, presentPhysicalObjects, homographies):
     for physicalObject, objectDetectionResult in presentPhysicalObjects:
@@ -113,22 +154,6 @@ def draw_annotations(frame, presentPhysicalObjects, homographies):
 
                 logger.debug("new_position: %s", newAbsolutePosition)
                 frame = cv2.circle(frame, newAbsolutePosition, annotation.radius, annotation.color, annotation.thikness)
-
-
-def cropPredictedObjects(frame, results):
-    for result in results:
-        # if result.confidnece * 100 > 60:
-        result.image = frame[result.top_left[1]:result.bottom_right[1], result.top_left[0]:result.bottom_right[0]]
-        if debug: cv2.imwrite(croppedImagesPath + result.lable + cropped_image_extension, result.image)
-
-
-class ObjectDetectionResult:
-    def __init__(self, lable, confidence, top_left, bottom_right):
-        self.lable = lable
-        self.confidnece = confidence
-        self.top_left = top_left
-        self.bottom_right = bottom_right
-        self.image = None
 
 
 def create_dummy_physical_objects():
@@ -321,32 +346,6 @@ def create_dummy_physical_objects():
     return phs
 
 
-class PhysicalObject:
-    def __init__(self):
-        self.name = ""
-        self.image_path = ""
-        self.image = None
-        self.annotations = []
-
-
-class Annotation:
-    def __init__(self):
-        self.type = ""
-        self.position = [0.0, 0.0]
-        self.text = ""
-        self.start = [0.0, 0.0]
-        self.end = [0.0, 0.0]
-        self.video_path = ""
-        self.audio_path = ""
-        self.image_path = ""
-        self.color = ""
-        self.radius = 0
-        self.thikness = 0
-        self.width = 0
-        self.height = 0
-        self.updateOrientation = False
-
-
 def find_present_physical_objects(physical_objects, object_detection_results):
     present_objects = []
     for physical_object in physical_objects:
@@ -361,11 +360,11 @@ def find_present_physical_objects(physical_objects, object_detection_results):
 def main():
     # feed the video/camera_feed into Yolo and get the bounding boxes of detected objects
     # crop the detected objects from Yolo output frame
-    # find the corresponding object in the list of saved domain objects
-    # for each saved object find features in the reference image and in the matching cropped image
+    # find the corresponding object in the list of physical objects of the scene
+    # for each scene physical object find features in the reference image and in the matching cropped image
     # use matcher to match the features
-    # compute the homography from the set of matched features
-    # apply homograph to the position of the annotations.
+    # compute the transformation (affine, homography) from the set of matched features
+    # apply transformation to the position of the annotations.
 
 
     physical_objects = create_dummy_physical_objects()
@@ -374,10 +373,11 @@ def main():
     logger.info("YOLO model loaded.")
 
 
-    frame_number = 0
+    # predict every n-th frames
     # prediction_rate = 5
     prediction_rate = 2
-    video_path = './domains/tools2.mp4'
+    
+    video_path = './test/tools.avi'
     capture = cv2.VideoCapture(video_path)
     # capture = cv2.VideoCapture(0)
 
@@ -401,6 +401,7 @@ def main():
 
     logger.info("All pose estimator processes started. Starting OpenCV capture loop.")
 
+    frame_number = 0
     while capture.isOpened():
         stime = time.time()
         ret, frame = capture.read()
@@ -420,6 +421,7 @@ def main():
                     t1 = time.time()
 
                     physical_object_names = [i[0].name for i in present_physical_objects]
+                    # remove from best_homographies those objects that are no more present on the table
                     remove_from_best_homographies = list(set(best_homographies.keys()) - set(physical_object_names))
                     for name in remove_from_best_homographies:
                         del best_homographies[name]
@@ -443,7 +445,7 @@ def main():
 
                             best_homographies[pe_output.object_name] = pe_output
 
-                    logger.debug("Computing homographies took ", time.time() - t1)
+                    logger.debug("Computing homographies took %s", time.time() - t1)
 
                 draw_results_on_frame(frame, colors, object_detection_results)
                 draw_annotations(frame, present_physical_objects, best_homographies)
@@ -464,10 +466,10 @@ def main():
 
 if __name__ == "__main__":
     # create logger with 'spam_application'
-    logger = logging.getLogger('mirdl')
+    logger = logging.getLogger('tracking2d')
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('mirdl.log')
+    fh = logging.FileHandler('log/tracking2d.log')
     fh.setLevel(logging.INFO)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
