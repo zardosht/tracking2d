@@ -7,64 +7,15 @@ import time
 import logging
 from yolo_pose_estimator import PoseEstimator
 import multiprocessing as mp
+from yolo_tracker_classes import PhysicalObject, Annotation, \
+        ObjectDetectionResult, PoseEstimationInput, PoseEstimationOutput
 
-
-
-
-class PhysicalObject:
-    def __init__(self):
-        self.name = ""
-        self.image_path = ""
-        self.image = None
-        self.annotations = []
-
-
-class Annotation:
-    def __init__(self):
-        self.type = ""
-        self.position = [0.0, 0.0]
-        self.text = ""
-        self.start = [0.0, 0.0]
-        self.end = [0.0, 0.0]
-        self.video_path = ""
-        self.audio_path = ""
-        self.image_path = ""
-        self.color = ""
-        self.radius = 0
-        self.thikness = 0
-        self.width = 0
-        self.height = 0
-        self.updateOrientation = False
-
-
-class PoseEstimationOutput:
-    def __init__(self, name, homography, error):
-        self.object_name = name
-        self.homography = homography
-        self.error = error
-
-
-class PoseEstimationInput:
-    def __init__(self, object_name, template_image, target_image, best_homography):
-        self.object_name = object_name
-        self.template_image = template_image
-        self.target_image = target_image
-        self.best_homography = best_homography
-
-
-class ObjectDetectionResult:
-    def __init__(self, lable, confidence, top_left, bottom_right):
-        self.lable = lable
-        self.confidnece = confidence
-        self.top_left = top_left
-        self.bottom_right = bottom_right
-        self.image = None
 
 
 options = {
     'model': 'model/tools/tools_v2.cfg',
     'load': 'model/tools/tools_v2_12600.weights',
-    'labels': 'model/labels.txt',
+    'labels': 'model/tools/labels.txt',
     'threshold': 0.5,
     'gpu': 1.0
 }
@@ -465,20 +416,15 @@ def main():
 
 
 if __name__ == "__main__":
-    # create logger with 'spam_application'
     logger = logging.getLogger('tracking2d')
     logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
     fh = logging.FileHandler('log/tracking2d.log')
     fh.setLevel(logging.INFO)
-    # create console handler with a higher log level
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s:%(lineno)d - %(funcName)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
-    # add the handlers to the logger
     logger.addHandler(fh)
     logger.addHandler(ch)
     logger.info('Logging is configured.')
