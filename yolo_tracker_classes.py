@@ -57,9 +57,9 @@ class ObjectDetectionResult:
     """
     ObjectDetectionResult
     """
-    def __init__(self, lable, confidence, top_left, bottom_right):
-        self.lable = lable
-        self.confidnece = confidence
+    def __init__(self, label, confidence, top_left, bottom_right):
+        self.label = label
+        self.confidence = confidence
         self.top_left = top_left
         self.bottom_right = bottom_right
         self.image = None

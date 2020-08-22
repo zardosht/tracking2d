@@ -1,14 +1,16 @@
+"""
+Tracker
+"""
 import traceback
+import time
+import logging
+import multiprocessing as mp
 
 import cv2
 from darkflow.net.build import TFNet
 import numpy as np
-import time
-import logging
 from yolo_pose_estimator import PoseEstimator
-import multiprocessing as mp
-from yolo_tracker_classes import PhysicalObject, Annotation, \
-        ObjectDetectionResult, PoseEstimationInput, PoseEstimationOutput
+from yolo_tracker_classes import PhysicalObject, Annotation, ObjectDetectionResult, PoseEstimationInput
 
 
 
@@ -24,9 +26,9 @@ options = {
 model_loaded = False
 tfnet = None
 
-croppedImagesPath = "./tmp/croppedImages/"
-cropped_image_extension = ".jpg"
-physical_objects_data_path = "./physical_objects/tools/"
+CROPPED_IMAGES_PATH = "./tmp/croppedImages/"
+CROPPED_IMAGE_EXTENSION = ".jpg"
+PHYSICAL_OBJECTS_DATA_PATH = "./physical_objects/tools/"
 
 logger = logging.getLogger('tracking2d.yolo_tracker')
 debug = False
@@ -47,14 +49,14 @@ def get_predictions(frame):
         tl = (pred_result['topleft']['x'], pred_result['topleft']['y'])
         br = (pred_result['bottomright']['x'], pred_result['bottomright']['y'])
         label = pred_result['label']
-        confidnece = pred_result['confidence']
-        predictions.append(ObjectDetectionResult(label, confidnece, tl, br))
+        confidence = pred_result['confidence']
+        predictions.append(ObjectDetectionResult(label, confidence, tl, br))
     return predictions
 
 
 def draw_results_on_frame(frame, colors, objectDetectionResults):
     for color, result in zip(colors, objectDetectionResults):
-        text = '{}: {:.0f}%'.format(result.lable, result.confidnece * 100)
+        text = '{}: {:.0f}%'.format(result.label, result.confidence * 100)
         # frame = cv2.rectangle(frame, result.top_left, result.bottom_right, color, 5)
         # frame = cv2.putText(frame, text, result.top_left, cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
 
@@ -64,9 +66,9 @@ def draw_results_on_frame(frame, colors, objectDetectionResults):
 
 def cropPredictedObjects(frame, results):
     for result in results:
-        # if result.confidnece * 100 > 60:
+        # if result.confidence * 100 > 60:
         result.image = frame[result.top_left[1]:result.bottom_right[1], result.top_left[0]:result.bottom_right[0]]
-        if debug: cv2.imwrite(croppedImagesPath + result.lable + cropped_image_extension, result.image)
+        if debug: cv2.imwrite(CROPPED_IMAGES_PATH + result.label + CROPPED_IMAGE_EXTENSION, result.image)
 
 def compute_new_position(position, homography):
     try:
@@ -101,10 +103,10 @@ def draw_annotations(frame, present_phys_objs, homographies):
             if annotation.type == "CircleAnnotation":
                 new_position = compute_new_position(annotation.position, homographies[physical_object.name].homography)
                 # new_position = annotation.position
-                newAbsolutePosition = (object_detection_result.top_left[0] + new_position[0], object_detection_result.top_left[1] + new_position[1])
+                new_absolute_position = (object_detection_result.top_left[0] + new_position[0], object_detection_result.top_left[1] + new_position[1])
 
-                logger.debug("new_position: %s", newAbsolutePosition)
-                frame = cv2.circle(frame, newAbsolutePosition, annotation.radius, annotation.color, annotation.thickness)
+                logger.debug("new_position: %s", new_absolute_position)
+                frame = cv2.circle(frame, new_absolute_position, annotation.radius, annotation.color, annotation.thickness)
 
 
 def create_dummy_physical_objects():
@@ -112,22 +114,22 @@ def create_dummy_physical_objects():
     pincers = PhysicalObject()
     pincers.name = "Pincers"
     pincers.image_path = "Pincers.jpg"
-    pincers.image = cv2.imread(physical_objects_data_path + pincers.image_path)
-    textAnnotation = Annotation()
-    textAnnotation.type = "TextAnnotation"
-    textAnnotation.text = "This is a pincers"
-    textAnnotation.position = [2, 2]
-    pincers.annotations.append(textAnnotation)
+    pincers.image = cv2.imread(PHYSICAL_OBJECTS_DATA_PATH + pincers.image_path)
+    text_annotation = Annotation()
+    text_annotation.type = "TextAnnotation"
+    text_annotation.text = "This is a pincers"
+    text_annotation.position = [2, 2]
+    pincers.annotations.append(text_annotation)
     arrow = Annotation()
     arrow.type = "Arrow"
     arrow.start = [10.5, 20.9]
     arrow.end = [20.5, 30.5]
     pincers.annotations.append(arrow)
-    videoAnnotation = Annotation()
-    videoAnnotation.type = "VideoAnnotation"
-    videoAnnotation.position = [40.5, 50.9]
-    videoAnnotation.video_path = "pincers_video.mpg"
-    pincers.annotations.append(videoAnnotation)
+    video_annotation = Annotation()
+    video_annotation.type = "VideoAnnotation"
+    video_annotation.position = [40.5, 50.9]
+    video_annotation.video_path = "pincers_video.mpg"
+    pincers.annotations.append(video_annotation)
     circle_annotation = Annotation()
     circle_annotation.type = "CircleAnnotation"
     circle_annotation.radius = 20
@@ -144,53 +146,53 @@ def create_dummy_physical_objects():
     pincers.annotations.append(circle_annotation)
     phs.append(pincers)
 
-    adjSpanner = PhysicalObject()
-    adjSpanner.name = "Adjustable Spanner"
-    adjSpanner.image_path = "Adjustable Spanner.jpg"
-    adjSpanner.image = cv2.imread(physical_objects_data_path + adjSpanner.image_path)
-    textAnnotation = Annotation()
-    textAnnotation.type = "TextAnnotation"
-    textAnnotation.text = "This is an Adjustable Spanner"
-    textAnnotation.position = [2, 2]
-    adjSpanner.annotations.append(textAnnotation)
+    adj_spanner = PhysicalObject()
+    adj_spanner.name = "Adjustable Spanner"
+    adj_spanner.image_path = "Adjustable Spanner.jpg"
+    adj_spanner.image = cv2.imread(PHYSICAL_OBJECTS_DATA_PATH + adj_spanner.image_path)
+    text_annotation = Annotation()
+    text_annotation.type = "TextAnnotation"
+    text_annotation.text = "This is an Adjustable Spanner"
+    text_annotation.position = [2, 2]
+    adj_spanner.annotations.append(text_annotation)
     arrow = Annotation()
     arrow.type = "Arrow"
     arrow.start = [10.5, 20.9]
     arrow.end = [20.5, 30.5]
-    adjSpanner.annotations.append(arrow)
-    videoAnnotation = Annotation()
-    videoAnnotation.type = "VideoAnnotation"
-    videoAnnotation.position = [40.5, 50.9]
-    videoAnnotation.video_path = "Adjustable_Spanner_video.mpg"
-    adjSpanner.annotations.append(videoAnnotation)
+    adj_spanner.annotations.append(arrow)
+    video_annotation = Annotation()
+    video_annotation.type = "VideoAnnotation"
+    video_annotation.position = [40.5, 50.9]
+    video_annotation.video_path = "Adjustable_Spanner_video.mpg"
+    adj_spanner.annotations.append(video_annotation)
     circle_annotation = Annotation()
     circle_annotation.type = "CircleAnnotation"
     circle_annotation.radius = 20
     circle_annotation.position = [74, 380]
     circle_annotation.color = [0, 0, 255]
     circle_annotation.thickness = 3
-    adjSpanner.annotations.append(circle_annotation)
-    phs.append(adjSpanner)
+    adj_spanner.annotations.append(circle_annotation)
+    phs.append(adj_spanner)
 
     pump_pliers = PhysicalObject()
     pump_pliers.name = "Pump Pliers"
     pump_pliers.image_path = "Pump Pliers.jpg"
-    pump_pliers.image = cv2.imread(physical_objects_data_path + pump_pliers.image_path)
-    textAnnotation = Annotation()
-    textAnnotation.type = "TextAnnotation"
-    textAnnotation.text = "This is an Pump Pliers"
-    textAnnotation.position = [2, 2]
-    pump_pliers.annotations.append(textAnnotation)
+    pump_pliers.image = cv2.imread(PHYSICAL_OBJECTS_DATA_PATH + pump_pliers.image_path)
+    text_annotation = Annotation()
+    text_annotation.type = "TextAnnotation"
+    text_annotation.text = "This is an Pump Pliers"
+    text_annotation.position = [2, 2]
+    pump_pliers.annotations.append(text_annotation)
     arrow = Annotation()
     arrow.type = "Arrow"
     arrow.start = [10.5, 20.9]
     arrow.end = [20.5, 30.5]
     pump_pliers.annotations.append(arrow)
-    videoAnnotation = Annotation()
-    videoAnnotation.type = "VideoAnnotation"
-    videoAnnotation.position = [40.5, 50.9]
-    videoAnnotation.video_path = "Pump_Pliers_video.mpg"
-    pump_pliers.annotations.append(videoAnnotation)
+    video_annotation = Annotation()
+    video_annotation.type = "VideoAnnotation"
+    video_annotation.position = [40.5, 50.9]
+    video_annotation.video_path = "Pump_Pliers_video.mpg"
+    pump_pliers.annotations.append(video_annotation)
     circle_annotation = Annotation()
     circle_annotation.type = "CircleAnnotation"
     circle_annotation.radius = 20
@@ -217,22 +219,22 @@ def create_dummy_physical_objects():
     linemans_pliers = PhysicalObject()
     linemans_pliers.name = "Linemans Pliers"
     linemans_pliers.image_path = "Linemans Pliers.jpg"
-    linemans_pliers.image = cv2.imread(physical_objects_data_path + linemans_pliers.image_path)
-    textAnnotation = Annotation()
-    textAnnotation.type = "TextAnnotation"
-    textAnnotation.text = "This is a Linemans Pliers"
-    textAnnotation.position = [2, 2]
-    linemans_pliers.annotations.append(textAnnotation)
+    linemans_pliers.image = cv2.imread(PHYSICAL_OBJECTS_DATA_PATH + linemans_pliers.image_path)
+    text_annotation = Annotation()
+    text_annotation.type = "TextAnnotation"
+    text_annotation.text = "This is a Linemans Pliers"
+    text_annotation.position = [2, 2]
+    linemans_pliers.annotations.append(text_annotation)
     arrow = Annotation()
     arrow.type = "Arrow"
     arrow.start = [10.5, 20.9]
     arrow.end = [20.5, 30.5]
     linemans_pliers.annotations.append(arrow)
-    videoAnnotation = Annotation()
-    videoAnnotation.type = "VideoAnnotation"
-    videoAnnotation.position = [40.5, 50.9]
-    videoAnnotation.video_path = "linemans_pliers_video.mpg"
-    linemans_pliers.annotations.append(videoAnnotation)
+    video_annotation = Annotation()
+    video_annotation.type = "VideoAnnotation"
+    video_annotation.position = [40.5, 50.9]
+    video_annotation.video_path = "linemans_pliers_video.mpg"
+    linemans_pliers.annotations.append(video_annotation)
     circle_annotation = Annotation()
     circle_annotation.type = "CircleAnnotation"
     circle_annotation.radius = 20
@@ -259,22 +261,22 @@ def create_dummy_physical_objects():
     needle_nose_pliers = PhysicalObject()
     needle_nose_pliers.name = "Needle Nose Pliers"
     needle_nose_pliers.image_path = "Needle Nose Pliers.jpg"
-    needle_nose_pliers.image = cv2.imread(physical_objects_data_path + needle_nose_pliers.image_path)
-    textAnnotation = Annotation()
-    textAnnotation.type = "TextAnnotation"
-    textAnnotation.text = "This is a Needle Nose Pliers"
-    textAnnotation.position = [2, 2]
-    needle_nose_pliers.annotations.append(textAnnotation)
+    needle_nose_pliers.image = cv2.imread(PHYSICAL_OBJECTS_DATA_PATH + needle_nose_pliers.image_path)
+    text_annotation = Annotation()
+    text_annotation.type = "TextAnnotation"
+    text_annotation.text = "This is a Needle Nose Pliers"
+    text_annotation.position = [2, 2]
+    needle_nose_pliers.annotations.append(text_annotation)
     arrow = Annotation()
     arrow.type = "Arrow"
     arrow.start = [10.5, 20.9]
     arrow.end = [20.5, 30.5]
     needle_nose_pliers.annotations.append(arrow)
-    videoAnnotation = Annotation()
-    videoAnnotation.type = "VideoAnnotation"
-    videoAnnotation.position = [40.5, 50.9]
-    videoAnnotation.video_path = "needle_nose_pliers_video.mpg"
-    needle_nose_pliers.annotations.append(videoAnnotation)
+    video_annotation = Annotation()
+    video_annotation.type = "VideoAnnotation"
+    video_annotation.position = [40.5, 50.9]
+    video_annotation.video_path = "needle_nose_pliers_video.mpg"
+    needle_nose_pliers.annotations.append(video_annotation)
     circle_annotation = Annotation()
     circle_annotation.type = "CircleAnnotation"
     circle_annotation.radius = 20
@@ -301,7 +303,7 @@ def find_present_physical_objects(physical_objects, object_detection_results):
     present_objects = []
     for physical_object in physical_objects:
         for object_detection_result in object_detection_results:
-            if physical_object.name == object_detection_result.lable:
+            if physical_object.name == object_detection_result.label:
                 present_objects.append((physical_object, object_detection_result))
     return present_objects
 
