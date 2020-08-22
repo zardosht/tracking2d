@@ -10,7 +10,8 @@ import cv2
 from darkflow.net.build import TFNet
 import numpy as np
 from yolo_pose_estimator import PoseEstimator
-from yolo_tracker_classes import PhysicalObject, Annotation, ObjectDetectionResult, PoseEstimationInput
+from yolo_tracker_classes import PhysicalObject, Annotation, \
+    ObjectDetectionResult, PoseEstimationInput
 
 
 
@@ -26,12 +27,12 @@ options = {
 model_loaded = False
 tfnet = None
 
-CROPPED_IMAGES_PATH = "./tmp/croppedImages/"
+CROPPED_IMAGES_PATH = "./log/croppedImages/"
 CROPPED_IMAGE_EXTENSION = ".jpg"
 PHYSICAL_OBJECTS_DATA_PATH = "./physical_objects/tools/"
 
 logger = logging.getLogger('tracking2d.yolo_tracker')
-debug = False
+DEBUG = True
 
 
 homography_error_drawing_threshold = 200
@@ -68,7 +69,7 @@ def cropPredictedObjects(frame, results):
     for result in results:
         # if result.confidence * 100 > 60:
         result.image = frame[result.top_left[1]:result.bottom_right[1], result.top_left[0]:result.bottom_right[0]]
-        if debug: cv2.imwrite(CROPPED_IMAGES_PATH + result.label + CROPPED_IMAGE_EXTENSION, result.image)
+        if DEBUG: cv2.imwrite(CROPPED_IMAGES_PATH + result.label + CROPPED_IMAGE_EXTENSION, result.image)
 
 def compute_new_position(position, homography):
     try:

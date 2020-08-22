@@ -8,11 +8,14 @@ import time
 from yolo_tracker_classes import PoseEstimationOutput
 
 
-logger = logging.getLogger('mirdl.yolo_pose_estimator')
-debug = False
-
+logger = logging.getLogger('tracking2d.yolo_pose_estimator')
+DEBUG = True
+LOG_IMAGES_PATH = "./log/"
 
 class PoseEstimator(mp.Process):
+    """
+    PoseEstimator
+    """
 
     MAX_FEATURES = 500
     GOOD_MATCH_PERCENT = 0.90
@@ -75,10 +78,10 @@ class PoseEstimator(mp.Process):
                 (cc, h_ECC) = cv2.findTransformECC(physical_object_image_gray, cropped_image_gray, better_homography_float32,
                                                    cv2.MOTION_AFFINE, criteria)
 
-                errror_ecc = self.compute_error(h_ECC, physical_object_image, cropped_image, "_ecc")
-                if h_ECC is not None and errror_ecc < better_pe.error:
+                error_ecc = self.compute_error(h_ECC, physical_object_image, cropped_image, "_ecc")
+                if h_ECC is not None and error_ecc < better_pe.error:
                     pe_result.homography = h_ECC
-                    pe_result.error = errror_ecc
+                    pe_result.error = error_ecc
 
         epsilon = 5e0
         if best_pe is None or pe_result.error < best_pe.error:
@@ -91,25 +94,25 @@ class PoseEstimator(mp.Process):
     def compute_homography(self, physical_object_image, cropped_image):
         # physicalObjectImage, croppedImage = convertToGrayScale(physicalObjectImage, croppedImage)
 
-        # physicalObjectKeyPoints, physicalObjectDescriptors, croppedImageKeyPoints, croppedImageDescriptors \
+        # phys_obj_keypoints, phys_obj_descriptors, cropped_image_keypoints, cropped_image_descriptors \
         #     = extractFeaturePoints(physicalObjectImage, croppedImage, algorithm='SURF')
-        # physicalObjectKeyPoints, physicalObjectDescriptors, croppedImageKeyPoints, croppedImageDescriptors \
+        # phys_obj_keypoints, phys_obj_descriptors, cropped_image_keypoints, cropped_image_descriptors \
         #     = extractFeaturePoints(physicalObjectImage, croppedImage, algorithm='SIFT')
-        # physicalObjectKeyPoints, physicalObjectDescriptors, croppedImageKeyPoints, croppedImageDescriptors \
+        # phys_obj_keypoints, phys_obj_descriptors, cropped_image_keypoints, cropped_image_descriptors \
         #     = extractFeaturePoints(physicalObjectImage, croppedImage, algorithm='ORB')
-        physicalObjectKeyPoints, physicalObjectDescriptors, croppedImageKeyPoints, croppedImageDescriptors \
+        phys_obj_keypoints, phys_obj_descriptors, cropped_image_keypoints, cropped_image_descriptors \
             = self.extract_feature_points(physical_object_image, cropped_image, algorithm='AKAZE')
 
-        # matches = findMatches(physicalObjectDescriptors, croppedImageDescriptors, algorithm='BRUTE_FORCE_L1')
-        matches = self.find_matches(physicalObjectDescriptors, croppedImageDescriptors, algorithm='BRUTE_FORCE_HAMMING', ratio_test=False)
-        # matches = findMatches(physicalObjectDescriptors, croppedImageDescriptors, algorithm='BRUTE_FORCE_HAMMING', ratioTest=True)
-        # matches = findMatches(physicalObjectDescriptors, croppedImageDescriptors, algorithm='FLANN')
+        # matches = findMatches(phys_obj_descriptors, cropped_image_descriptors, algorithm='BRUTE_FORCE_L1')
+        matches = self.find_matches(phys_obj_descriptors, cropped_image_descriptors, algorithm='BRUTE_FORCE_HAMMING', ratio_test=False)
+        # matches = findMatches(phys_obj_descriptors, cropped_image_descriptors, algorithm='BRUTE_FORCE_HAMMING', ratioTest=True)
+        # matches = findMatches(phys_obj_descriptors, cropped_image_descriptors, algorithm='FLANN')
 
         # Draw top matches
-        imMatches = cv2.drawMatches(physical_object_image, physicalObjectKeyPoints, cropped_image, croppedImageKeyPoints, matches, None)
-        if debug: cv2.imwrite("matches.jpg", imMatches)
+        im_matches = cv2.drawMatches(physical_object_image, phys_obj_keypoints, cropped_image, cropped_image_keypoints, matches, None)
+        if DEBUG: cv2.imwrite(LOG_IMAGES_PATH + "matches.jpg", im_matches)
 
-        points1, points2 = self.find_points_from_matches(physicalObjectKeyPoints, croppedImageKeyPoints, matches)
+        points1, points2 = self.find_points_from_matches(phys_obj_keypoints, cropped_image_keypoints, matches)
 
         # h1, mask = cv2.findHomography(points1, points2, cv2.RANSAC, ransac_reprojection_threshold)
 
@@ -120,7 +123,7 @@ class PoseEstimator(mp.Process):
 
         if self.recompute_homography_using_only_inliers:
             # get the inlier matches (list of tuples of points)
-            # run find homography again unsing only the inliers this time instead of LEMDS or RHO instead of RANSAC
+            # run find homography again using only the inliers this time instead of LEMDS or RHO instead of RANSAC
             boolean_inliers_mask = (mask > 0)
             inlier_points1 = points1[boolean_inliers_mask.repeat(2, axis =1)].reshape((-1, 2))
             inlier_points2 = points2[boolean_inliers_mask.repeat(2, axis =1)].reshape((-1, 2))
@@ -213,13 +216,13 @@ class PoseEstimator(mp.Process):
 
     @staticmethod
     def compute_error(homography, physical_object_image, cropped_image, debug_postfix=""):
-        height, width, channels = cropped_image.shape
+        height, width, _ = cropped_image.shape
 
         # warpped_original = cv2.warpPerspective(physical_object_image, homography, (width, height))
         warpped_original = cv2.warpAffine(physical_object_image, homography, (width, height), flags = cv2.INTER_LINEAR)
 
         warpped_original[warpped_original == 0] = 255
-        if debug: cv2.imwrite("warpped_original" + debug_postfix + ".jpg", warpped_original)
+        if DEBUG: cv2.imwrite(LOG_IMAGES_PATH + "warpped_original" + debug_postfix + ".jpg", warpped_original)
 
         difference_image = np.abs(cropped_image.astype("float32") - warpped_original.astype("float32"))
         difference_image = cv2.cvtColor(difference_image, cv2.COLOR_BGR2GRAY)
@@ -241,7 +244,7 @@ class PoseEstimator(mp.Process):
         # difference_image = cv2.morphologyEx(difference_image, cv2.MORPH_OPEN, morph_elem)
         # # difference_image = cv2.morphologyEx(difference_image, cv2.MORPH_TOPHAT, morph_elem)
 
-        if debug: cv2.imwrite("difference_image" + debug_postfix + ".jpg", difference_image)
+        if DEBUG: cv2.imwrite(LOG_IMAGES_PATH + "difference_image" + debug_postfix + ".jpg", difference_image)
 
         # error = (1 / (height * width)) * np.sum(difference_image ** 2)
         error = np.sqrt((1 / (height * width)) * np.sum(difference_image ** 2))
