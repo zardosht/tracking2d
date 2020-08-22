@@ -1,4 +1,4 @@
 .idea
+.vscode
 __pycache__
-domains/tools2.mp4
-bin
+model/tools/tools_v2_12600.weights

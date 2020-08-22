@@ -1,0 +1,2 @@
+For other object detection models, put your own model and 
+configuration here, and adjust the options in the yolo_tracker.py
