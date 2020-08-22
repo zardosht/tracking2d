@@ -2,3 +2,5 @@
 .vscode
 __pycache__
 model/tools/tools_v2_12600.weights
+test/tools.mp4
+log

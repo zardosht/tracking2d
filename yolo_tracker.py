@@ -104,7 +104,7 @@ def draw_annotations(frame, present_phys_objs, homographies):
                 newAbsolutePosition = (object_detection_result.top_left[0] + new_position[0], object_detection_result.top_left[1] + new_position[1])
 
                 logger.debug("new_position: %s", newAbsolutePosition)
-                frame = cv2.circle(frame, newAbsolutePosition, annotation.radius, annotation.color, annotation.thikness)
+                frame = cv2.circle(frame, newAbsolutePosition, annotation.radius, annotation.color, annotation.thickness)
 
 
 def create_dummy_physical_objects():
@@ -328,7 +328,8 @@ def main():
     # prediction_rate = 5
     prediction_rate = 2
     
-    video_path = './test/tools.avi'
+    video_path = './test/tools_960x540.avi'
+    # video_path = './test/tools.mp4'
     capture = cv2.VideoCapture(video_path)
     # capture = cv2.VideoCapture(0)
 
@@ -356,6 +357,7 @@ def main():
     while capture.isOpened():
         stime = time.time()
         ret, frame = capture.read()
+        frame = cv2.resize(frame, (1920, 1080))
         if ret:
             try:
                 frame_number += 1
