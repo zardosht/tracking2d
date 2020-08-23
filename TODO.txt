@@ -1,10 +1,10 @@
 - add a requirements.txt 
-- add README.md
-- add a aimated gif of the Youtube video to readme
+- add README.md 
+- add a aimated gif of the Youtube video to readme  -- DONE
 - add links and instructions for building and integrating the model and the tools2.mp4 test video file
-- rename all variables and function name to adhere to Python naming convention
-- add poison pills for stopping pose estimator processes
-- check the logger
+- rename all variables and function name to adhere to Python naming convention -- DONE
+- add poison pills for stopping pose estimator processes 
+- check the logger -- DONE
 - check/compare with ISAR code for better performance (or maybe move the ISAR's code here)
-- move all log and debug images to a separate folder
+- move all log and debug images to a separate folder -- DONE
 
